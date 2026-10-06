@@ -1,9 +1,17 @@
 export class ApiResponse<T> {
   success: boolean;
   message: string;
-  data?: T;
+  data?: T | undefined;
 
-  constructor({ success, message, data }: { success: boolean; message: string; data?: T }) {
+  constructor({
+    success,
+    message,
+    data,
+  }: {
+    success: boolean;
+    message: string;
+    data?: T | undefined;
+  }) {
     this.success = success;
     this.message = message;
     this.data = data;
