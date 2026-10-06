@@ -1,17 +1,18 @@
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import { z } from 'zod';
 
-dotenv.config({
-  quiet: true,
-});
-
 const envSchema = z.object({
-  PORT: z.string(),
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
-  MONGODB_URI: z.string(),
+  PORT: z.coerce.number().default(3000),
+
+  DB_HOST: z.string().min(1),
+  DB_PORT: z.coerce.number().min(1).max(65535),
+  DB_USER: z.string().min(1),
+  DB_PASSWORD: z.string().min(1),
+  DB_NAME: z.string().min(1),
 
   JWT_SECRET: z.string().min(1),
-
   JWT_REFRESH_SECRET: z.string().min(1),
 });
 
