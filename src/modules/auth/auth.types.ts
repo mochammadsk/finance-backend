@@ -1,6 +1,6 @@
 import type { JWTPayload } from 'jose';
 
 export interface TokenPayload extends JWTPayload {
-  userId: string;
+  userId: number;
   email: string;
 }

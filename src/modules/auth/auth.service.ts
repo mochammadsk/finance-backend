@@ -1,32 +1,13 @@
 import bcrypt from 'bcryptjs';
-import { authRepository } from './auth.repository.js';
-import type { LoginInput, RegisterInput } from './auth.schema.js';
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  verifyRefreshToken,
-} from '../../shared/helpers/jwt.helper.js';
+import { eq } from 'drizzle-orm';
+import { db } from '../../database/index.js';
+import { users } from '../../database/schema/user.js';
+import { generateAccessToken, generateRefreshToken } from '../../shared/helpers/jwt.helper.js';
+import type { LoginInput } from './auth.schema.js';
 
 export const authService = {
-  async register(payload: RegisterInput) {
-    const existingUser = await authRepository.findByEmail(payload.email);
-
-    if (existingUser) {
-      throw new Error('Email already exists');
-    }
-
-    const hashedPassword = await bcrypt.hash(payload.password, 10);
-
-    const user = await authRepository.create({
-      email: payload.email,
-      password: hashedPassword,
-    });
-
-    return user;
-  },
-
   async login(payload: LoginInput) {
-    const user = await authRepository.findByEmail(payload.email);
+    const [user] = await db.select().from(users).where(eq(users.email, payload.email));
 
     if (!user) {
       throw new Error('Invalid credentials');
@@ -47,7 +28,7 @@ export const authService = {
 
     const refreshToken = await generateRefreshToken(tokenPayload);
 
-    await authRepository.updateRefreshToken(user.id, refreshToken);
+    await db.update(users).set({ refreshToken }).where(eq(users.id, user.id));
 
     return {
       accessToken,
@@ -55,37 +36,37 @@ export const authService = {
     };
   },
 
-  async refresh(refreshToken: string) {
-    const { payload } = await verifyRefreshToken(refreshToken);
+  // async refresh(refreshToken: string) {
+  //   const { payload } = await verifyRefreshToken(refreshToken);
 
-    const user = await authRepository.findById(payload.userId as string);
+  //   const user = await authRepository.findById(payload.userId as string);
 
-    if (!user) {
-      throw new Error('Unauthorized');
-    }
+  //   if (!user) {
+  //     throw new Error('Unauthorized');
+  //   }
 
-    if (user.refreshToken !== refreshToken) {
-      throw new Error('Invalid refresh token');
-    }
+  //   if (user.refreshToken !== refreshToken) {
+  //     throw new Error('Invalid refresh token');
+  //   }
 
-    const tokenPayload = {
-      userId: user.id,
-      email: user.email,
-    };
+  //   const tokenPayload = {
+  //     userId: user.id,
+  //     email: user.email,
+  //   };
 
-    const newAccessToken = await generateAccessToken(tokenPayload);
+  //   const newAccessToken = await generateAccessToken(tokenPayload);
 
-    const newRefreshToken = await generateRefreshToken(tokenPayload);
+  //   const newRefreshToken = await generateRefreshToken(tokenPayload);
 
-    await authRepository.updateRefreshToken(user.id, newRefreshToken);
+  //   await authRepository.updateRefreshToken(user.id, newRefreshToken);
 
-    return {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-    };
-  },
+  //   return {
+  //     accessToken: newAccessToken,
+  //     refreshToken: newRefreshToken,
+  //   };
+  // },
 
-  async logout(userId: string) {
-    await authRepository.updateRefreshToken(userId, null);
-  },
+  // async logout(userId: string) {
+  //   await authRepository.updateRefreshToken(userId, null);
+  // },
 };
