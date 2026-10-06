@@ -1,9 +1,8 @@
+import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { rateLimiter } from 'hono-rate-limiter';
-import { zValidator } from '@hono/zod-validator';
-import { loginSchema } from './auth.schema.js';
 import { authController } from './auth.controller.js';
-import { authMiddleware } from '../../middlewares/auth.middleware.js';
+import { loginSchema } from './auth.schema.js';
 
 const authRoutes = new Hono();
 
@@ -17,7 +16,7 @@ const loginRateLimiter = rateLimiter({
 });
 
 authRoutes.post('/login', loginRateLimiter, zValidator('json', loginSchema), authController.login);
-authRoutes.post('/refresh', authController.refresh);
-authRoutes.post('/logout', authMiddleware, authController.logout);
+// authRoutes.post('/refresh', authController.refresh);
+// authRoutes.post('/logout', authMiddleware, authController.logout);
 
 export default authRoutes;

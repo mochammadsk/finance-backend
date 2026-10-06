@@ -1,8 +1,8 @@
 import type { Context } from 'hono';
-import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
-import { authService } from './auth.service.js';
-import type { LoginInput } from './auth.schema.js';
+import { setCookie } from 'hono/cookie';
 import { ApiResponse } from '../../shared/responses/api-response.js';
+import type { LoginInput } from './auth.schema.js';
+import { authService } from './auth.service.js';
 
 export const authController = {
   async login(c: Context) {
@@ -25,37 +25,37 @@ export const authController = {
     );
   },
 
-  async refresh(c: Context) {
-    const refreshToken = getCookie(c, 'refreshToken');
+  // async refresh(c: Context) {
+  //   const refreshToken = getCookie(c, 'refreshToken');
 
-    if (!refreshToken) {
-      return c.json(ApiResponse.error('Unauthorized'), 401);
-    }
+  //   if (!refreshToken) {
+  //     return c.json(ApiResponse.error('Unauthorized'), 401);
+  //   }
 
-    const result = await authService.refresh(refreshToken);
+  //   const result = await authService.refresh(refreshToken);
 
-    setCookie(c, 'refreshToken', result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
+  //   setCookie(c, 'refreshToken', result.refreshToken, {
+  //     httpOnly: true,
+  //     secure: process.env.NODE_ENV === 'production',
+  //     sameSite: 'Strict',
+  //     path: '/',
+  //     maxAge: 60 * 60 * 24 * 7,
+  //   });
 
-    return c.json(
-      ApiResponse.success('Refresh success', {
-        accessToken: result.accessToken,
-      })
-    );
-  },
+  //   return c.json(
+  //     ApiResponse.success('Refresh success', {
+  //       accessToken: result.accessToken,
+  //     })
+  //   );
+  // },
 
-  async logout(c: Context) {
-    const user = c.get('user');
+  // async logout(c: Context) {
+  //   const user = c.get('user');
 
-    await authService.logout(user.userId);
+  //   await authService.logout(user.userId);
 
-    deleteCookie(c, 'refreshToken');
+  //   deleteCookie(c, 'refreshToken');
 
-    return c.json(ApiResponse.success('Logout success'));
-  },
+  //   return c.json(ApiResponse.success('Logout success'));
+  // },
 };

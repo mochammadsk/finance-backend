@@ -15,7 +15,17 @@ export const authMiddleware = async (c: Context, next: Next) => {
       );
     }
 
-    const token = authHeader.split(' ')[1];
+    const [scheme, token] = authHeader.split(' ');
+
+    if (scheme !== 'Bearer' || !token) {
+      return c.json(
+        {
+          success: false,
+          message: 'Unauthorized',
+        },
+        401
+      );
+    }
 
     const { payload } = await verifyAccessToken(token);
 
